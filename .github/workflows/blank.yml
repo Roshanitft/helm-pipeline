@@ -27,25 +27,37 @@ jobs:
       
 
       # Runs a single command using the runners shell
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-            AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-            aws-region: us-east-1
-        
-      - name: Setup ECR
-        run: |
-          # Login to AWS ECR
-          $( aws ecr get-login --no-include-email )
-      - name: Build anddocker push $AWS_ACCOUNT_ID.dkr.ecr.aws-region.amazonaws.com/$CONTAINER_IMAGE tag the image
-        run: |
-          # Build and tag the image
-          docker build \
-          -t $CONTAINER_IMAGE \
-          -t $AWS_ACCOUNT_ID.dkr.ecr.aws-region.amazonaws.com/$CONTAINER_IMAGE ./app
-           
-    # Add additional steps here like scanning of image
-      - name: push
-        run: docker push $AWS_ACCOUNT_ID.dkr.ecr.aws-region.amazonaws.com/$CONTAINER_IMAGE
+       - name: Check out code
+         uses: actions/checkout@v2
+
+       - name: Install kubectl
+         uses: azure/setup-kubectl@v1
+         with:
+          version: 'v1.21.3'
+          id: install
+
+       - name: Configure AWS credentials
+         uses: aws-actions/configure-aws-credentials@v1
+         with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+       - name: Login to Amazon ECR
+         id: login-ecr
+         uses: aws-actions/amazon-ecr-login@v1
+
+       - name: Load secrets and save to app.env
+         run: aws secretsmanager get-secret-value --secret-id simple_bank --query SecretString --output text | jq -r 'to_entries|map("\(.key)=\(.value)")|.[]' > app.env
+
+       - name: Build, tag, and push image to Amazon ECR
+         env:
+         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+         ECR_REPOSITORY: simplebank
+         IMAGE_TAG: ${{ github.sha }}
+         run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+          docker push -a $ECR_REGISTRY/$ECR_REPOSITORY
+       - name: Update kube config
+         run: aws eks update-kubeconfig --name simple-bank --region us-east-1
+
