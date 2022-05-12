@@ -39,7 +39,7 @@ jobs:
         run: |
           # Login to AWS ECR
           $( aws ecr get-login --no-include-email )
-      - name: Build anddocker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$CONTAINER_IMAGE tag the image
+      - name: Build anddocker push $AWS_ACCOUNT_ID.dkr.ecr.aws-region.amazonaws.com/$CONTAINER_IMAGE tag the image
         run: |
           # Build and tag the image
           docker build \
