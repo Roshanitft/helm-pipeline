@@ -30,13 +30,22 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
+            AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
             aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
             aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
             aws-region: us-east-1
         
-      - name: Eksctl tool installer
-  # You may pin to the exact commit or the version.
-  # uses: moia-oss/setup-eksctl@83ec8588193ef06a137ad7d4584549abf81e0d1b
-        uses: moia-oss/setup-eksctl@v1
-        with:
-          version: latest
+      - name: Setup ECR
+        run: |
+          # Login to AWS ECR
+          $( aws ecr get-login --no-include-email )
+      - name: Build anddocker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$CONTAINER_IMAGE tag the image
+        run: |
+          # Build and tag the image
+          docker build \
+          -t $CONTAINER_IMAGE \
+          -t $AWS_ACCOUNT_ID.dkr.ecr.aws-region.amazonaws.com/$CONTAINER_IMAGE ./app
+           
+    # Add additional steps here like scanning of image
+      - name: push
+        run: docker push $AWS_ACCOUNT_ID.dkr.ecr.aws-region.amazonaws.com/$CONTAINER_IMAGE
