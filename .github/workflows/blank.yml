@@ -41,5 +41,5 @@ jobs:
         ECR_REPOSITORY: automation
         IMAGE_TAG: "Tags: ${{ github.event.inputs.tags }}"
       run: |
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.event.inputs.tags }} .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
