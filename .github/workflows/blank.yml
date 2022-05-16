@@ -42,7 +42,9 @@ jobs:
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: automation
-        IMAGE_TAG: "Tags: ${{ github.event.inputs.tags }}"
+        IMAGE_TAG:  "Tags: ${{ github.event.inputs.tags }}"
       run: |
-         echo "hi"
+         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.event.inputs.tags }} .
+         docker push $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.event.inputs.tags }}
+
     
