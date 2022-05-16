@@ -1,6 +1,10 @@
 name: Deploy to ECR
 
 on:
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, closed]
  
   workflow_dispatch:
     inputs:
@@ -14,7 +18,7 @@ on:
 jobs:
   
   build:
-    
+    if: (!(github.event.action == 'closed' && github.event.pull_request.merged != true))
     name: Build Image
     runs-on: ubuntu-latest
 
