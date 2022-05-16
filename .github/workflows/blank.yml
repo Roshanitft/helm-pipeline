@@ -43,5 +43,6 @@ jobs:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: automation
         IMAGE_TAG: "Tags: ${{ github.event.inputs.tags }}"
-      
+      run: |
+         echo "hi"
     
